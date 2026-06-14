@@ -136,3 +136,4 @@ are required:
 | `SERVER_HOST` | Deploy target hostname or IP |
 | `SERVER_USER` | SSH user |
 | `SERVER_SSH_KEY` | Private SSH key for the deploy user |
+
