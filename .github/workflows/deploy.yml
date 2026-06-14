@@ -1,3 +1,4 @@
+# .github/workflows/deploy.yml
 name: Deploy
 
 on:
@@ -15,22 +16,31 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            set -e
             cd ~/garden/backend
 
-            # First run: clone the repo; afterwards: pull the latest changes
+            # Тянем свежий код
             if [ ! -d .git ]; then
-              git clone https://github.com/${{ github.repository }}.git .
+              git clone git@github.com:${{ github.repository }}.git .
             else
               git pull origin main
             fi
 
-            # Build the image
+            # ── Backend ──
             docker build -t garden-api:latest .
-
-            # Restart only the api service (the database is left untouched)
             docker compose up -d api
 
-            # Wait for the healthcheck
-            echo "Waiting for healthcheck..."
+            # ── Frontend ──
+            cd frontend
+            npm ci
+            npm run build
+            sudo rm -rf /var/www/garden
+            sudo mkdir -p /var/www/garden
+            sudo cp -r dist/* /var/www/garden/
+            sudo chown -R www-data:www-data /var/www/garden
+
+            # ── Healthcheck ──
+            echo "Waiting for API..."
             sleep 5
             curl -sf http://localhost:3000/health || echo "⚠️  Healthcheck failed"
+            echo "✅ Deploy complete"
