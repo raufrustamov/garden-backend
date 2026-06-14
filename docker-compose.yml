@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: garden-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-garden}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-dev_secret_change_me}
+      POSTGRES_DB: ${DB_NAME:-garden}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-garden}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    image: garden-api:latest
+    container_name: garden-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgresql://${DB_USER:-garden}:${DB_PASSWORD:-dev_secret_change_me}@db:5432/${DB_NAME:-garden}
+    ports:
+      - "127.0.0.1:3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  pgdata:
