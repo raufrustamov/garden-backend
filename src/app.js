@@ -225,5 +225,111 @@ app.post("/api/watering", async (req, res) => {
     res.status(500).json({ error: "Failed to log watering event" });
   }
 });
+app.patch("/api/pots/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name, plant_type, moisture_threshold, enabled } = req.body;
+
+  try {
+    const fields = [];
+    const values = [];
+    let idx = 1;
+
+    if (name !== undefined)               { fields.push(`name = $${idx++}`); values.push(name); }
+    if (plant_type !== undefined)          { fields.push(`plant_type = $${idx++}`); values.push(plant_type); }
+    if (moisture_threshold !== undefined)  { fields.push(`moisture_threshold = $${idx++}`); values.push(moisture_threshold); }
+    if (enabled !== undefined)             { fields.push(`enabled = $${idx++}`); values.push(enabled); }
+
+    if (!fields.length) return res.status(400).json({ error: "No fields to update" });
+
+    values.push(id);
+    const { rows } = await query(
+        `UPDATE pots SET ${fields.join(", ")} WHERE id = $${idx} RETURNING *`,
+        values
+    );
+
+    if (!rows.length) return res.status(404).json({ error: "Pot not found" });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update pot" });
+  }
+});
+
+// ─── WATERING HISTORY ───────────────────────────────
+// GET /api/watering-history/:deviceId?limit=50
+app.get("/api/watering-history/:deviceId", async (req, res) => {
+  const { deviceId } = req.params;
+  const limit = parseInt(req.query.limit) || 50;
+
+  try {
+    const { rows } = await query(`
+      SELECT we.*, p.name AS pot_name, p.slot
+      FROM watering_events we
+      JOIN pots p ON p.id = we.pot_id
+      WHERE p.device_id = $1
+      ORDER BY we.ts DESC
+      LIMIT $2
+    `, [deviceId, limit]);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch watering history" });
+  }
+});
+
+// ─── AI RECOMMENDATIONS LOG ─────────────────────────
+// GET /api/ai/history/:deviceId?limit=20
+app.get("/api/ai/history/:deviceId", async (req, res) => {
+  const { deviceId } = req.params;
+  const limit = parseInt(req.query.limit) || 20;
+
+  try {
+    const { rows } = await query(`
+      SELECT id, created_at, severity, summary
+      FROM ai_recommendations
+      WHERE device_id = $1
+      ORDER BY created_at DESC
+      LIMIT $2
+    `, [deviceId, limit]);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch AI history" });
+  }
+});
+
+// ─── STATS ──────────────────────────────────────────
+// GET /api/stats/:deviceId — сводка по поливу
+app.get("/api/stats/:deviceId", async (req, res) => {
+  const { deviceId } = req.params;
+
+  try {
+    // Поливы за сегодня / неделю / месяц
+    const { rows: totals } = await query(`
+      SELECT
+        COUNT(*) FILTER (WHERE we.ts > NOW() - INTERVAL '1 day')  AS today,
+        COUNT(*) FILTER (WHERE we.ts > NOW() - INTERVAL '7 days') AS week,
+        COUNT(*) FILTER (WHERE we.ts > NOW() - INTERVAL '30 days') AS month
+      FROM watering_events we
+      JOIN pots p ON p.id = we.pot_id
+      WHERE p.device_id = $1
+    `, [deviceId]);
+
+    // Топ растений по количеству поливов (за 30 дней)
+    const { rows: perPlant } = await query(`
+      SELECT p.name, p.slot, COUNT(we.id) AS waterings,
+             COALESCE(SUM(we.duration_sec), 0) AS total_sec
+      FROM pots p
+      LEFT JOIN watering_events we ON we.pot_id = p.id AND we.ts > NOW() - INTERVAL '30 days'
+      WHERE p.device_id = $1 AND p.enabled = true
+      GROUP BY p.id, p.name, p.slot
+      ORDER BY waterings DESC
+    `, [deviceId]);
+
+    res.json({
+      totals: totals[0],
+      perPlant,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch stats" });
+  }
+});
 
 export default app;
