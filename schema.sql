@@ -1,7 +1,6 @@
 -- ============================================================
 --  Database schema — smart plant watering system (PostgreSQL)
 -- ============================================================
-
 create table devices (
                          id          text primary key,
                          name        text not null default 'Garden',
@@ -74,12 +73,18 @@ create table ai_recommendations (
 );
 create index on ai_recommendations (device_id, created_at desc);
 
--- Seed data
+-- ============================================================
+--  Реальные растения (определены по фото, июнь 2026)
+-- ============================================================
 insert into devices (id, name) values ('greenhouse-01', 'Garden');
 
 insert into pots (device_id, slot, name, plant_type, moisture_threshold) values
-                                                                             ('greenhouse-01', 1, 'Monstera',       'Monstera deliciosa', 35),
-                                                                             ('greenhouse-01', 2, 'Rubber Fig',     'Ficus elastica',     35),
-                                                                             ('greenhouse-01', 3, 'Peace Lily',     'Spathiphyllum',      45),
-                                                                             ('greenhouse-01', 4, 'ZZ Plant',       'Zamioculcas',        25),
-                                                                             ('greenhouse-01', 5, 'Basil',          'Ocimum basilicum',   50);
+                                                                             ('greenhouse-01', 1, 'Роза',      'Rosa sp.',                              40),
+                                                                             ('greenhouse-01', 2, 'Мята',      'Mentha sp.',                            45),
+                                                                             ('greenhouse-01', 3, 'Любисток',  'Levisticum officinale',                 40),
+                                                                             ('greenhouse-01', 4, 'Базилик',   'Ocimum basilicum',                      40),
+                                                                             ('greenhouse-01', 5, 'Бархатцы',  'Tagetes patula',                        25),
+                                                                             ('greenhouse-01', 6, 'Кинза',     'Coriandrum sativum',                    45),
+                                                                             ('greenhouse-01', 7, 'Ежевика',   'Rubus fruticosus',                      40),
+                                                                             ('greenhouse-01', 8, 'Потос',     'Epipremnum aureum',                     30),
+                                                                             ('greenhouse-01', 9, 'Рейхан',    'Ocimum basilicum var. purpurascens',    40);

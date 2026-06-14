@@ -20,11 +20,15 @@ async function send() {
     },
     tank: { lowLevel: Math.random() < 0.1 },
     pots: [
-      { slot: 1, moisturePct: rand(30, 80) },
-      { slot: 2, moisturePct: rand(25, 70) },
-      { slot: 3, moisturePct: rand(15, 60) },
-      { slot: 4, moisturePct: rand(50, 90) },
-      { slot: 5, moisturePct: rand(20, 55) },
+      { slot: 1, moisturePct: rand(30, 80) },  // Роза
+      { slot: 2, moisturePct: rand(35, 85) },  // Мята
+      { slot: 3, moisturePct: rand(25, 70) },  // Любисток
+      { slot: 4, moisturePct: rand(30, 75) },  // Базилик
+      { slot: 5, moisturePct: rand(20, 55) },  // Бархатцы
+      { slot: 6, moisturePct: rand(35, 85) },  // Кинза
+      { slot: 7, moisturePct: rand(30, 75) },  // Ежевика
+      { slot: 8, moisturePct: rand(25, 65) },  // Потос
+      { slot: 9, moisturePct: rand(30, 70) },  // Рейхан
     ],
     wifiRssi: Math.round(rand(-70, -40)),
   };
