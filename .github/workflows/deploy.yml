@@ -15,12 +15,12 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          envs: TELEGRAM_BOT_TOKEN
+          envs: TELEGRAM_BOT_TOKEN,ANTHROPIC_API_KEY
           script: |
             set -e
             cd ~/garden/backend
 
-            # Pull the latest code
+            # Тянем свежий код
             if [ ! -d .git ]; then
               git clone git@github.com:${{ github.repository }}.git .
             else
@@ -28,12 +28,16 @@ jobs:
             fi
 
             # ── Inject secrets into .env ──
-            # Update TELEGRAM_BOT_TOKEN from GitHub Secrets
-            if grep -q "^TELEGRAM_BOT_TOKEN=" .env 2>/dev/null; then
-              sed -i "s|^TELEGRAM_BOT_TOKEN=.*|TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}|" .env
-            else
-              echo "TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}" >> .env
-            fi
+            for VAR in TELEGRAM_BOT_TOKEN ANTHROPIC_API_KEY; do
+              VAL=$(eval echo \$$VAR)
+              if [ -n "$VAL" ]; then
+                if grep -q "^${VAR}=" .env 2>/dev/null; then
+                  sed -i "s|^${VAR}=.*|${VAR}=${VAL}|" .env
+                else
+                  echo "${VAR}=${VAL}" >> .env
+                fi
+              fi
+            done
 
             # ── Backend ──
             docker build -t garden-api:latest .
@@ -53,3 +57,4 @@ jobs:
             echo "✅ Deploy complete"
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
