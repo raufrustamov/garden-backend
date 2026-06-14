@@ -15,15 +15,24 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          envs: TELEGRAM_BOT_TOKEN
           script: |
             set -e
             cd ~/garden/backend
 
-            # Тянем свежий код
+            # Pull the latest code
             if [ ! -d .git ]; then
               git clone git@github.com:${{ github.repository }}.git .
             else
               git pull origin main
+            fi
+
+            # ── Inject secrets into .env ──
+            # Update TELEGRAM_BOT_TOKEN from GitHub Secrets
+            if grep -q "^TELEGRAM_BOT_TOKEN=" .env 2>/dev/null; then
+              sed -i "s|^TELEGRAM_BOT_TOKEN=.*|TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}|" .env
+            else
+              echo "TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}" >> .env
             fi
 
             # ── Backend ──
@@ -42,3 +51,5 @@ jobs:
             sleep 5
             curl -sf http://localhost:3000/health || echo "⚠️  Healthcheck failed"
             echo "✅ Deploy complete"
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}

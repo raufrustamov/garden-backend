@@ -20,20 +20,20 @@ const CYAN = "#46B6E8";
 
 /* ── helpers ──────────────────────────────────────── */
 function statusOf(m, thr) {
-  if (m == null) return { label: "Нет данных", tone: "warn" };
-  if (m < (thr ?? 30))      return { label: "Полить",    tone: "alert" };
-  if (m < (thr ?? 30) + 15) return { label: "Подсыхает", tone: "warn" };
-  if (m <= 80)              return { label: "В норме",   tone: "ok" };
-  return { label: "Влажно", tone: "wet" };
+  if (m == null) return { label: "No data", tone: "warn" };
+  if (m < (thr ?? 30))      return { label: "Water now", tone: "alert" };
+  if (m < (thr ?? 30) + 15) return { label: "Drying",    tone: "warn" };
+  if (m <= 80)              return { label: "Healthy",   tone: "ok" };
+  return { label: "Moist", tone: "wet" };
 }
 
 function relTime(ts) {
   if (!ts) return "—";
   const s = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
-  if (s < 90)    return "только что";
-  if (s < 3600)  return `${Math.floor(s / 60)} мин назад`;
-  if (s < 86400) return `${Math.floor(s / 3600)} ч назад`;
-  return `${Math.floor(s / 86400)} дн назад`;
+  if (s < 90)    return "just now";
+  if (s < 3600)  return `${Math.floor(s / 60)} min ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)} h ago`;
+  return `${Math.floor(s / 86400)} d ago`;
 }
 
 /* ── ring gauge ───────────────────────────────────── */
@@ -84,7 +84,7 @@ function TankBar({ low }) {
         <span className="cico" style={{ background: low ? "rgba(255,107,92,.16)" : "rgba(70,182,232,.16)" }}>
           <Waves size={15} color={color} />
         </span>
-        Бак с водой
+        Water tank
       </div>
 
       {/* visual tank */}
@@ -127,12 +127,12 @@ function TankBar({ low }) {
           <div style={{
             fontSize: 22, fontFamily: "Manrope", fontWeight: 300, color: low ? "#FF6B5C" : "#EAF2F2",
           }}>
-            {low ? "Пора долить воду" : "Уровень в норме"}
+            {low ? "Time to refill" : "Level is fine"}
           </div>
           <div style={{ fontSize: 12, color: "#7C8A98", marginTop: 4 }}>
             {low
-              ? "Поплавок сработал — бак почти пуст. Помпы не запустятся, чтобы не гонять воздух."
-              : "Воды достаточно для полива всех горшков."}
+              ? "Float switch tripped — the tank is almost empty. Pumps stay off to avoid running dry."
+              : "Enough water to irrigate every pot."}
           </div>
 
           {/* progress bar */}
@@ -227,7 +227,7 @@ export default function App() {
     const m = p.moisture_pct != null ? parseFloat(p.moisture_pct) : null;
     return m != null && m < (p.moisture_threshold ?? 30);
   });
-  const clock = new Date(now).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+  const clock = new Date(now).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
   /* ── css ────────────────────────────────────────── */
   const css = `
@@ -300,7 +300,7 @@ export default function App() {
     <div className="wrap"><style>{css}</style>
       <div className="loader">
         <div><Loader2 size={32} style={{ animation: "spin 1s linear infinite", marginBottom: 12 }} />
-        <div>Подключение к серверу…</div></div>
+        <div>Connecting to the server…</div></div>
       </div>
     </div>
   );
@@ -309,19 +309,19 @@ export default function App() {
     <div className="wrap"><style>{css}</style>
       <div className="err">
         <WifiOff size={40} style={{ marginBottom: 12, opacity: .6 }} />
-        <div>Не удалось подключиться к API</div>
+        <div>Could not connect to the API</div>
         <div style={{ fontSize: 12, marginTop: 8, color: "#7C8A98" }}>{error}</div>
         <button onClick={fetchState} style={{
           marginTop: 16, padding: "10px 24px", borderRadius: 12, border: "none",
           background: "rgba(70,182,232,.2)", color: CYAN, cursor: "pointer",
           fontFamily: "Inter", fontWeight: 600, fontSize: 13,
-        }}>Повторить</button>
+        }}>Retry</button>
       </div>
     </div>
   );
 
-  const lightDesc = !amb ? "" : amb.light_lux > 6000 ? "Светло" : amb.light_lux > 1500 ? "Рассеянный свет" : "Сумрак";
-  const humDesc = !amb ? "" : amb.humidity < 45 ? "сухо" : amb.humidity < 60 ? "комфортно" : "влажно";
+  const lightDesc = !amb ? "" : amb.light_lux > 6000 ? "Bright" : amb.light_lux > 1500 ? "Diffuse light" : "Dim";
+  const humDesc = !amb ? "" : amb.humidity < 45 ? "dry" : amb.humidity < 60 ? "comfortable" : "humid";
 
   return (
     <div className="wrap">
@@ -345,7 +345,7 @@ export default function App() {
         <div className="hero">
           {/* MICROCLIMATE */}
           <div className="glass card">
-            <div className="chead"><span className="cico" style={{ background: "rgba(231,178,76,.18)" }}><Sun size={15} color="#E7B24C" /></span> Микроклимат</div>
+            <div className="chead"><span className="cico" style={{ background: "rgba(231,178,76,.18)" }}><Sun size={15} color="#E7B24C" /></span> Microclimate</div>
             {amb ? (<>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
                 <div>
@@ -355,34 +355,34 @@ export default function App() {
                 <Sun size={46} color="#E7B24C" style={{ opacity: .9, filter: "drop-shadow(0 0 12px rgba(231,178,76,.4))" }} />
               </div>
               <div className="climrow">
-                <div className="chip"><div className="l"><Droplets size={12} /> Влажн.</div><div className="v num">{Math.round(parseFloat(amb.humidity))}<small>%</small></div></div>
-                <div className="chip"><div className="l"><Gauge size={12} /> Давл.</div><div className="v num">{Math.round(parseFloat(amb.pressure_hpa))}<small> hPa</small></div></div>
-                <div className="chip"><div className="l"><Sun size={12} /> Свет</div><div className="v num">{(parseInt(amb.light_lux) / 1000).toFixed(1)}<small> klx</small></div></div>
+                <div className="chip"><div className="l"><Droplets size={12} /> Humid.</div><div className="v num">{Math.round(parseFloat(amb.humidity))}<small>%</small></div></div>
+                <div className="chip"><div className="l"><Gauge size={12} /> Press.</div><div className="v num">{Math.round(parseFloat(amb.pressure_hpa))}<small> hPa</small></div></div>
+                <div className="chip"><div className="l"><Sun size={12} /> Light</div><div className="v num">{(parseInt(amb.light_lux) / 1000).toFixed(1)}<small> klx</small></div></div>
               </div>
-            </>) : <div style={{ color: "#7C8A98", fontSize: 13 }}>Ожидаем первые данные…</div>}
+            </>) : <div style={{ color: "#7C8A98", fontSize: 13 }}>Waiting for the first readings…</div>}
           </div>
 
           {/* AI GARDENER */}
           <div className="glass card">
-            <div className="chead"><span className="cico" style={{ background: "rgba(70,182,232,.18)" }}><Sparkles size={15} color={CYAN} /></span> Садовник · AI</div>
+            <div className="chead"><span className="cico" style={{ background: "rgba(70,182,232,.18)" }}><Sparkles size={15} color={CYAN} /></span> Gardener · AI</div>
             <div className="aitxt">
               {rec ? rec.summary : needWater.length > 0
-                ? `${needWater.length} ${needWater.length === 1 ? "горшок требует" : "горшка требуют"} полива.`
-                : "Все растения в норме. AI-анализ появится когда накопятся данные."}
+                ? `${needWater.length} ${needWater.length === 1 ? "pot needs" : "pots need"} watering.`
+                : "All plants are healthy. AI analysis will appear once enough data is collected."}
             </div>
             <div className="scan"><i /></div>
           </div>
 
           {/* SYSTEM */}
           <div className="glass card">
-            <div className="chead"><span className="cico" style={{ background: "rgba(79,208,138,.16)" }}><CloudRain size={15} color="#4FD08A" /></span> Система</div>
+            <div className="chead"><span className="cico" style={{ background: "rgba(79,208,138,.16)" }}><CloudRain size={15} color="#4FD08A" /></span> System</div>
             <div className="sysrow">
               <div>
-                <div style={{ color: "#7C8A98", fontSize: 12 }}>Нуждаются в поливе</div>
+                <div style={{ color: "#7C8A98", fontSize: 12 }}>Need watering</div>
                 <div className="big num" style={{ color: needWater.length ? "#FF6B5C" : "#4FD08A" }}>{needWater.length}</div>
               </div>
               <div style={{ textAlign: "right" }}>
-                <div style={{ color: "#7C8A98", fontSize: 12 }}>Последний контакт</div>
+                <div style={{ color: "#7C8A98", fontSize: 12 }}>Last contact</div>
                 <div className="num" style={{ fontSize: 14, fontWeight: 300, color: "#AEB9C4" }}>{relTime(dev?.last_seen)}</div>
               </div>
             </div>
@@ -418,8 +418,8 @@ export default function App() {
                 </div>
                 <Spark data={histories[p.id]} color={tn.c} />
                 <div className="pmeta">
-                  <span>полив: {relTime(p.last_watered)}</span>
-                  <span>порог: {p.moisture_threshold}%</span>
+                  <span>watered: {relTime(p.last_watered)}</span>
+                  <span>threshold: {p.moisture_threshold}%</span>
                 </div>
                 <button className="wbtn" disabled={busy || tankLow}
                   onClick={() => water(p.slot)}
@@ -429,10 +429,10 @@ export default function App() {
                     boxShadow: busy ? "none" : `0 0 20px -4px ${tn.g}`,
                   }}>
                   {busy
-                    ? <><Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} /> Полив…</>
+                    ? <><Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} /> Watering…</>
                     : tankLow
-                      ? <><AlertTriangle size={15} /> Бак пуст</>
-                      : <><Power size={15} /> Полить</>}
+                      ? <><AlertTriangle size={15} /> Tank empty</>
+                      : <><Power size={15} /> Water</>}
                 </button>
               </div>
             );
@@ -443,7 +443,7 @@ export default function App() {
         <div className="glass dock">
           <div className="dockL">
             <button className="allbtn" disabled={!needWater.length || tankLow} onClick={() => needWater.forEach(p => water(p.slot))}>
-              <Droplets size={15} /> Полить нуждающиеся {needWater.length ? `(${needWater.length})` : ""}
+              <Droplets size={15} /> Water all that need it {needWater.length ? `(${needWater.length})` : ""}
             </button>
           </div>
           <div className="dockR">

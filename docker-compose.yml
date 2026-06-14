@@ -27,6 +27,7 @@ services:
     environment:
       PORT: 3000
       DATABASE_URL: postgresql://${DB_USER:-garden}:${DB_PASSWORD:-dev_secret_change_me}@db:5432/${DB_NAME:-garden}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
     ports:
       - "127.0.0.1:3000:3000"
     healthcheck:
