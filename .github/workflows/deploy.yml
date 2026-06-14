@@ -34,10 +34,8 @@ jobs:
             cd frontend
             npm ci
             npm run build
-            sudo rm -rf /var/www/garden
-            sudo mkdir -p /var/www/garden
-            sudo cp -r dist/* /var/www/garden/
-            sudo chown -R www-data:www-data /var/www/garden
+            rm -rf /var/www/garden/*
+            cp -r dist/* /var/www/garden/
 
             # ── Healthcheck ──
             echo "Waiting for API..."
